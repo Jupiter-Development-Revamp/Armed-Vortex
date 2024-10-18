@@ -1,12 +1,14 @@
 -- PLACE THIS INSIDE REPLICATED STORAGE TO ENSURE 100% WORKAGE!
-
+-- Half of this is made to be edited for others, not just us (Exfamous,Prometheus)
+-- Fully tested btw if it dont work its on you
 --[[
     Project: Armed-Vortex;
     Developers: Prometheus, ExFamous;
     Contributors: nil;
     Description: InfoHandlerModule;
     Version: v1.0;
-    Update Date: nil;
+    Update Date: 10/18/2024 8:48 AM est;
+    Update made by Exfamous
 ]]
 
 -- {{ MODULE TABLE }} --
@@ -34,7 +36,7 @@ aVM.avCon = { -- Armed-Vortex Configuration
 		SYSTEM = {
 			kS = true; -- Kick System Enabled -- CHANGE IF YOU WANT TO USE THE KICK SYSTEM!
 			bS = false; -- Ban System Enabled -- CHANGE IF YOU WANT TO USE THE BAN SYSTEM!
-			wH = "https://discord.com/api/webhooks/"; -- WebHook for Armed Vortex notifications -- Change for your WebHook
+			wH = ""; -- Change for your WebHook
 		};    
 	};
 
@@ -96,8 +98,9 @@ end;
 function aVM.checkLevel(user: Player?)
 	local l = aVM.avCon.OWNERCONFIGS[user.Name] and aVM.avCon.OWNERCONFIGS[user.Name]["LEVEL"]
 	local ad = aVM.avCon.OWNERCONFIGS[user.Name] and aVM.avCon.OWNERCONFIGS[user.Name]["ADMIN"]
+
 	local oS = nil
-	
+
 	if l == 1 then
 		oS = "Owner"
 		aVM.sendToWebhook("Owner detected "..user.Name)
@@ -109,13 +112,17 @@ function aVM.checkLevel(user: Player?)
 	else
 		oS = "false"
 	end
+
 	ad = ad ~= nil and tostring(ad) or "false"
+
 	return oS, ad
 end
 
+
+
 function aVM.Initialize()
 	local players = game:GetService("Players");
-	
+
 	players.PlayerAdded:Connect(function(user)
 		local suc, err = pcall(function()
 			task.spawn(function()
@@ -203,7 +210,7 @@ function aVM.addStrike(playerUserId: number?, reason: string)
 			PLAYERS[playerUserId].STRIKES = PLAYERS[playerUserId].STRIKES + 1;
 			local player = game:GetService("Players"):GetPlayerByUserId(playerUserId);
 			if player and aVM.avCon.DEBUGINFO.dM then
-				-- You can implement a GUI for this!
+                --GUI scrapped for this
 				print(player.Name .. " has been warned. Now has " .. PLAYERS[playerUserId].STRIKES .. " strike(s).");
 			end;
 		end;
