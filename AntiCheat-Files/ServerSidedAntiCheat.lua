@@ -13,28 +13,6 @@
 -- Requiring the module
 local iHM = require(game:WaitForChild("ReplicatedStorage"):WaitForChild("InfoHolderModule"));
 
-local webhookURL = "" -- replace with your own webhook URL
-local function sendToWebhook(message)
-	local HttpService = game:GetService("HttpService")
-
-	local data = {
-		content = message
-	}
-
-	local jsonData = HttpService:JSONEncode(data)
-
-	local success, response = pcall(function()
-		return HttpService:PostAsync(webhookURL, jsonData, Enum.HttpContentType.ApplicationJson)
-	end)
-
-	if success then
-		print("Data sent successfully")
-	else
-		warn("Failed to send data: " .. response)
-	end
-end
-
-
 -- Quick check if the Anti-Cheat is being disabled
 if iHM.avCon.DEBUGINFO.dOO then
 	print("AntiCheat Disabled!");
@@ -88,7 +66,7 @@ local function detectSpeedHacks(player: Player?, character: Model?)
 			iHM.addStrike(player.UserId);
 			if iHM.avCon.DEBUGINFO.dM then
 				print(player.Name .. " is cheating -- Teleport/Speed Bypass/Jumppower Bypass/Flying/Invis");
-				sendToWebhook(player.Name .. " is cheating -- Teleport/Speed Bypass/Jumppower Bypass/Flying/Invis");
+				iHM.sendToWebhook(player.Name .. " is cheating -- Teleport/Speed Bypass/Jumppower Bypass/Flying/Invis");
 			end;
 			task.wait(2);
 		end;
@@ -116,7 +94,7 @@ local function detectAimBot(player: Player?, character: Model?)
 							iHM.addStrike(player.UserId);
 							if iHM.avCon.DEBUGINFO.dM then
 								print(player.Name .. " is cheating -- Aimbot Detected");
-								sendToWebhook(player.Name .. " is cheating Aimbot Detected");
+								iHM.sendToWebhook(player.Name .. " is cheating Aimbot Detected");
 							end;
 							break;
 						end;
@@ -155,6 +133,10 @@ game:GetService("Players").PlayerAdded:Connect(function(player)
 		coroutine.wrap(detectAimBot)(player, character);
 	end);
 end);
+
+game:GetService("Players").PlayerRemoving:Connect(function(player)
+	ssAC.pD.aB.SETTINGS.previousAimData[player] = nil;
+end)
 
 game:GetService("Players").PlayerRemoving:Connect(function(player)
 	ssAC.pD.aB.SETTINGS.previousAimData[player] = nil;
