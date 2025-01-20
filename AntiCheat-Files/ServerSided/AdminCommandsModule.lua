@@ -6,57 +6,10 @@ local iHM = require(game:WaitForChild("ReplicatedStorage"):WaitForChild("InfoHol
 local user = nil;
 local prefix = ";";
 
-local function sendReport(message, Reason, Player, Desc, Proof)
-	local data = {
-		['embeds'] = {{
-			['title'] = "Reported Player",
-			['description'] = "A player has submitted an in-game report!",
-			['thumbnail'] = {
-				['url'] = 'https://media.discordapp.net/attachments/1038554017736953977/1042150401564225536/stufflogo2.jpg?width=676&height=676',
-			},
-			["fields"] = {
-				{
-					["name"] = "Submitted by",
-					["value"] = Player.Name,
-					["inline"] = true
-				},
-				{
-					["name"] = "Player Reported",
-					["value"] = Player.Name,
-					["inline"] = false
-				},
-				{
-					["name"] = "Reason for Report",
-					["value"] = Reason,
-					["inline"] = false
-				},
-				{
-					["name"] = "Description",
-					["value"] = Desc,
-					["inline"] = false
-				},
-				{
-					["name"] = "Evidence",
-					["value"] = Proof,
-					["inline"] = false
-				},
-			}
-		}}
-	}
-	iHM.sendToWebhook(data)
-end
-
 -- Modify to your liking
 local tpLocations = {
 	-- ["example"] = CFrame.new(X, Y, Z);
 };
-
-local function warnPlayer(player: Player, message: string, color: BrickColor) -- Not an actual warning, sends stuff to their console -- If they have Admin their going to have that GUI
-	-- You should make this into a GUI
-	warn(message)
-end
-
-
 
 local function stringSimilarity(s1: string, s2: string)
 	local m, n = #s1, #s2;
@@ -89,12 +42,6 @@ local function getPlayer(name)
 end;
 
 local cmds = {
-	TEST = {
-		aliases = {"test","print"};
-		func = function(args: table)
-			print(table.concat(args, " "));
-		end;
-	};
 	KICK = {
 		aliases = {"kick"};
 		func = function(args: table)
@@ -115,7 +62,7 @@ local cmds = {
 			local suc, err = pcall(function()
 				user.Character.Humanoid.WalkSpeed = args[1];
 			end);
-			if not suc then warnPlayer(user, err, "red"); end;
+			if not suc then iHM.sendNotification(tostring(err), user.Name); end;
 		end;
 	};
 	JUMPPOWER = {
@@ -124,7 +71,7 @@ local cmds = {
 			local suc, err = pcall(function()
 				user.Character.Humanoid.JumpPower = args[1];
 			end);
-			if not suc then warnPlayer(user, err, "red"); end;
+			if not suc then iHM.sendNotification(tostring(err), user.Name); end;
 		end;
 	};
 	TP = {
@@ -143,7 +90,7 @@ local cmds = {
 					end;
 				end;
 			end);
-			if not suc then warnPlayer(user, err, "red"); end;
+			if not suc then iHM.sendNotification(tostring(err), user.Name); end;
 		end;
 	};
 	BRING = {
@@ -172,7 +119,7 @@ local cmds = {
 							for _, p in pairs(game:GetService("Players"):GetPlayers()) do
 								iHM.PLAYERS[game:GetService("Players"):GetUserIdFromNameAsync(p.Name)].TEMPPASS = true;
 								p.Character:PivotTo(v);
-								task.wait(0.5); -- needs to test
+								task.wait(0.5);
 								iHM.PLAYERS[game:GetService("Players"):GetUserIdFromNameAsync(p.Name)].TEMPPASS = false;
 							end;
 							break;
@@ -183,7 +130,7 @@ local cmds = {
 		end;
 	};
 	KILL = {
-		aliases = {};
+		aliases = {"kill", "k"};
 		func = function(args: Player?)
 			if args[1] == "all" then
 				for i,v in pairs(game:GetService("Players"):GetPlayers()) do
@@ -192,20 +139,18 @@ local cmds = {
 			elseif getPlayer(args[1]) then
 				getPlayer(args[1]).Character.Humanoid.Health = 0;
 			else
-				warnPlayer(user, "Invalid Player", "red");
+				iHM.sendNotification("Invalid Player", user.Name);
 			end;
 		end;
 	};
 };
-
 
 function aCM.logic(player, args: "table?")
 	if player.Name ~= args.playerName then
 		iHM.avCon.PLAYERS[player.UserId].STRIKES = 3;
 	elseif player.UserId ~= args.userId then
 		iHM.avCon.PLAYERS[player.UserId].STRIKES = 3;
-	end;
-	
+	end; 
 end;
 
 function aCM.init(User)
@@ -232,22 +177,12 @@ function aCM.init(User)
 		if bestMatch and highestScore >= 0.7 then
 			local success, error = pcall(bestMatch.func, args);
 			if not success then
-				warn("Error executing command: " .. error);
+				iHM.sendNotification("Error executing command: " .. error, user.Name);
 			end;
 		else
-			warn("Invalid Command: " .. cmd);
+			iHM.sendNotification("Invalid Command: " .. cmd, user.Name);
 		end;
 	end);
 end;
 
 return aCM;
-
---[[ -- need to do
-Mod/Admin abilities
-Users -- Vote for moderator review on player -- LEVEL 4
-Moderation -- Kick - Chatlogs - spectate - serverban -- LEVEL 3 [GUI Based for everything] 
-Admin -- Ban - Chatlogs - spectate - serverban - gameban - Admin Commands -- LEVEL 2 [GUI and Chat Commands]
-Owner -- Ban - Chatlogs - spectate - serverban - gameban - unban - Admin Commands -- LEVEL 1 [GUI and Chat Commands]
-
-Chat Commands -- Prefix - Walkspeed - Jumppower - Goto - Bring - Kill
-]]
