@@ -3,11 +3,12 @@
 -- NOT EDITABLE (unless you know what your doing)
 --[[
     Project: Armed-Vortex;
-    Developers: Prometheus, ExFamous;
+    Developers: StyxDeveloper, ExFamous;
     Contributors: nil;
     Description: Serversided anticheat;
-    Version: v1.0;
-    Update Date: nil; -- no updates yet
+    Version: v1.1;
+    Update Date: 1/20/2025;
+	Settings moved, added support for GUI, Updated AimBot settings
 ]]
 
 -- Requiring the module
@@ -22,47 +23,22 @@ end;
 -- Initialize the module's function
 iHM.Initialize();
 
+local previousAimData = {};
+
 -- Check if Debug Mode is enabled
 if iHM.avCon.DEBUGINFO.dM then
 	print("ServerSidedAntiCheat Connection... Successful!");
 end;
 
--- Define the server-sided AntiCheat configurations
-local ssAC = {
-	pD = { -- Everything the serversided AntiCheat will detect
-		wS = { -- Speed Hacks, And Teleporting, And Jump Hacks, And Fly Hacks, And Invis Hacks
-			ENABLED = true;
-			SETTINGS = { -- Do not modify if you dont know what you're doing
-				checkInterval = 0.6; -- Seconds
-				toleranceDelta = 16 + 1.4; -- 22.4 studs, Roblox's docs state how this works
-			};
-		};
-		aB = {-- AimBots
-			ENABLED = true;
-			SETTINGS = {
-				aimSnap = 1.5;
-				checkInterval = 0.3;
-				previousAimData = {};
-			};
-		};
-		aA = {-- Account (NOT PLAYER) age restrictions -- Prevents Accounts under a certain age play your game
-			ENABLED = true;
-			SETTINGS = {
-				minimumAge = 10; -- In days
-			};
-		};
-	};
-};
-
 -- Function to handle Speed/Teleport/JumpPower detection
 local function detectSpeedHacks(player: Player?, character: Model?)
 	local lastPosition = character.HumanoidRootPart.Position;
 
-	while player.Parent and ssAC.pD.wS.ENABLED and task.wait(ssAC.pD.wS.SETTINGS.checkInterval) do
+	while player.Parent and iHM.ssAC.pD.wS.ENABLED and task.wait(iHM.ssAC.pD.wS.SETTINGS.checkInterval) do
 		local newPosition = character.HumanoidRootPart.Position;
 		local distanceMoved = (lastPosition - newPosition).Magnitude;
 
-		if distanceMoved > ssAC.pD.wS.SETTINGS.toleranceDelta then
+		if distanceMoved > iHM.ssAC.pD.wS.SETTINGS.toleranceDelta then
 			iHM.addStrike(player.UserId);
 			if iHM.avCon.DEBUGINFO.dM then
 				print(player.Name .. " is cheating -- Teleport/Speed Bypass/Jumppower Bypass/Flying/Invis");
@@ -75,17 +51,17 @@ local function detectSpeedHacks(player: Player?, character: Model?)
 end;
 
 local function detectAimBot(player: Player?, character: Model?)
-	while player.Parent and ssAC.pD.aB.ENABLED do
+	while player.Parent and iHM.ssAC.pD.aB.ENABLED do
 		local head = character:FindFirstChild("Head") or nil;
 		if head then
 			local aimVector = head.CFrame.LookVector;
-			local prevData = ssAC.pD.aB.SETTINGS.previousAimData[player];
+			local prevData = previousAimData[player];
 			if not prevData then
 				prevData = {aimVector = aimVector, timestamp = tick()};
-				ssAC.pD.aB.SETTINGS.previousAimData[player] = prevData;
+				previousAimData[player] = prevData;
 			end
 			local timeDelta = tick() - prevData.timestamp;
-			if (prevData.aimVector - aimVector).magnitude > ssAC.pD.aB.SETTINGS.aimSnap and timeDelta < ssAC.pD.aB.SETTINGS.checkInterval then
+			if (prevData.aimVector - aimVector).magnitude > iHM.ssAC.pD.aB.SETTINGS.aimSnap and timeDelta < iHM.ssAC.pD.aB.SETTINGS.checkInterval then
 				for _, otherPlayer in pairs(game:GetService("Players"):GetPlayers()) do
 					if otherPlayer ~= player and otherPlayer.Character and otherPlayer.Character:FindFirstChild("Head") then
 						local otherHead = otherPlayer.Character.Head;
@@ -101,18 +77,19 @@ local function detectAimBot(player: Player?, character: Model?)
 					end;
 				end;
 			end;
-			ssAC.pD.aB.SETTINGS.previousAimData[player] = {aimVector = aimVector, timestamp = tick()};
+			previousAimData[player] = {aimVector = aimVector, timestamp = tick()};
 		end;
 		task.wait();
 	end;
 end;
 
 local function agePrevention(player: Player?)
-	if ssAC.pD.aA.ENABLED and player.AccountAge < ssAC.pD.aA.SETTINGS.minimumAge then
-		player:Kick("Your account is underaged.");
+	if iHM.ssAC.pD.aA.ENABLED and player.AccountAge < iHM.ssAC.pD.aA.SETTINGS.minimumAge then
 		if iHM.avCon.DEBUGINFO.dM then
 			print(player.Name .. " or " .. player.DisplayName .. " has just been kicked due to account not meeting age");
+			iHM.sendToWebhook(player.Name .. " alt has been detected, account is " .. player.AccountAge .. " days old.")
 		end;
+		player:Kick("Your account is underaged.");
 	end;
 end;
 
@@ -132,12 +109,9 @@ game:GetService("Players").PlayerAdded:Connect(function(player)
 		coroutine.wrap(detectSpeedHacks)(player, character);
 		coroutine.wrap(detectAimBot)(player, character);
 	end);
+	iHM.sendNotification("The game is protected by Jupiter Development!", player.Name);
 end);
 
 game:GetService("Players").PlayerRemoving:Connect(function(player)
-	ssAC.pD.aB.SETTINGS.previousAimData[player] = nil;
-end)
-
-game:GetService("Players").PlayerRemoving:Connect(function(player)
-	ssAC.pD.aB.SETTINGS.previousAimData[player] = nil;
-end)
+	previousAimData[player] = nil;
+end);
