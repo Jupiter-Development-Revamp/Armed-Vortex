@@ -1,14 +1,13 @@
 -- PLACE THIS INSIDE REPLICATED STORAGE TO ENSURE 100% WORKAGE!
--- Half of this is made to be edited for others, not just us (Exfamous,Prometheus)
--- Fully tested btw if it dont work its on you
+-- Half of this is made to be edited for others, not just us (Exfamous, StyxDeveloper)
 --[[
     Project: Armed-Vortex;
-    Developers: Prometheus, ExFamous;
+    Developers: StyxDeveloper, ExFamous;
     Contributors: nil;
     Description: InfoHandlerModule;
     Version: v1.0;
-    Update Date: 10/18/2024 8:48 AM est;
-    Update made by Exfamous
+    Update Date: 1/20/2025;
+    	Added Support For The GUI;
 ]]
 
 -- {{ MODULE TABLE }} --
@@ -36,10 +35,9 @@ aVM.avCon = { -- Armed-Vortex Configuration
 		SYSTEM = {
 			kS = true; -- Kick System Enabled -- CHANGE IF YOU WANT TO USE THE KICK SYSTEM!
 			bS = false; -- Ban System Enabled -- CHANGE IF YOU WANT TO USE THE BAN SYSTEM!
-			wH = ""; -- Change for your WebHook
+			wH = ""; -- WebHook for Armed Vortex notifications -- Change for your WebHook
 		};    
 	};
-
 	OWNERCONFIGS = { -- User Configurations
         --[[
             FORMAT:
@@ -49,16 +47,46 @@ aVM.avCon = { -- Armed-Vortex Configuration
            };
         --]]
 
-		--[[ -- Reference 
+		-- For test purposes
+		--[[
 		["Jupiter_Development"] = {
 			["LEVEL"] = 1;
 			["ADMIN"] = true;
 		};		
 		]]
-	};
 
+		["diva49ers"] = {
+			["LEVEL"] = 1;
+			["ADMIN"] = true;
+		};
+	};
 	PLAYERS = {
 		-- INFO THAT WILL BE PROVIDED USERID - STRIKES - SERVERBAN
+	};
+};
+
+aVM.ssAC = {
+	pD = { -- Everything the serversided AntiCheat will detect
+		wS = { -- Speed Hacks, And Teleporting, And Jump Hacks, And Fly Hacks, And Invis Hacks
+			ENABLED = true;
+			SETTINGS = { -- Do not modify if you dont know what you're doing
+				checkInterval = 0.6; -- Seconds
+				toleranceDelta = 16 + 1.4; -- 22.4 studs, Roblox's docs state how this works
+			};
+		};
+		aB = {-- AimBots
+			ENABLED = true;
+			SETTINGS = {
+				aimSnap = 0.8;
+				checkInterval = 0.3;
+			};
+		};
+		aA = {-- Account (NOT PLAYER) age restrictions -- Prevents Accounts under a certain age play your game
+			ENABLED = true;
+			SETTINGS = {
+				minimumAge = 10; -- In days
+			};
+		};
 	};
 };
 
@@ -77,12 +105,6 @@ function aVM.sendToWebhook(message)
 	local success, response = pcall(function()
 		return HttpService:PostAsync(aVM.avCon.MECHANICS.SYSTEM.wH, jsonData, Enum.HttpContentType.ApplicationJson)
 	end)
-
-	if success then
-		print("Data sent successfully")
-	else
-		warn("Failed to send data: " .. response)
-	end
 end
 
 -- Quick Check
@@ -118,7 +140,21 @@ function aVM.checkLevel(user: Player?)
 	return oS, ad
 end
 
-
+function aVM.sendNotification(message: string?, who: string?)
+	if not message or message == "" then
+		return;
+	end;
+	local notificationEvent = game:GetService("ReplicatedStorage").Remotes:WaitForChild("NotificationEvent");
+	if not notificationEvent then
+		repeat task.wait() until notificationEvent;
+		return;
+	end;
+	if who == nil or who == "all" then
+		notificationEvent:FireAllClients(nil, message);
+	else
+		notificationEvent:FireClient(game:GetService("Players")[who], message);
+	end;
+end;
 
 function aVM.Initialize()
 	local players = game:GetService("Players");
@@ -210,8 +246,7 @@ function aVM.addStrike(playerUserId: number?, reason: string)
 			PLAYERS[playerUserId].STRIKES = PLAYERS[playerUserId].STRIKES + 1;
 			local player = game:GetService("Players"):GetPlayerByUserId(playerUserId);
 			if player and aVM.avCon.DEBUGINFO.dM then
-                --GUI scrapped for this
-				print(player.Name .. " has been warned. Now has " .. PLAYERS[playerUserId].STRIKES .. " strike(s).");
+				aVM.sendNotification("Exploit Detected, stop exploiting!", player.Name);
 			end;
 		end;
 	end);
