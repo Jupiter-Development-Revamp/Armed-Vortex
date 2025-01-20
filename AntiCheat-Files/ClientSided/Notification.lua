@@ -1,6 +1,7 @@
 -- Made with the help of ChatGPT, this GUI is entirely hand coded (hence the need for GPT). 
 -- THIS IS A LOCAL SCRIPT!
 -- StarterGui --> Make a folder and name it "Jupiter" --> This script
+-- Replicated Storage --> Make a folder and name it "Remotes" --> Create a remote in that folder called "NotificationEvent"
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage");
 local player = game:GetService("Players").LocalPlayer;
