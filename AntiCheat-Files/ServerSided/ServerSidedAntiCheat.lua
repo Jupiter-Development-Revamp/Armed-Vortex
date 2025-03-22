@@ -3,12 +3,12 @@
 -- NOT EDITABLE (unless you know what your doing)
 --[[
     Project: Armed-Vortex;
-    Developers: StyxDeveloper, ExFamous;
+    Developers: StyxDeveloper;
     Contributors: nil;
     Description: Serversided anticheat;
     Version: v1.1;
-    Update Date: 1/20/2025;
-	Settings moved, added support for GUI, Updated AimBot settings
+    Update Date: 3/21/2025;
+	Fixed Jumppower Detection
 ]]
 
 -- Requiring the module
@@ -30,23 +30,39 @@ if iHM.avCon.DEBUGINFO.dM then
 	print("ServerSidedAntiCheat Connection... Successful!");
 end;
 
--- Function to handle Speed/Teleport/JumpPower detection
 local function detectSpeedHacks(player: Player?, character: Model?)
 	local lastPosition = character.HumanoidRootPart.Position;
 
 	while player.Parent and iHM.ssAC.pD.wS.ENABLED and task.wait(iHM.ssAC.pD.wS.SETTINGS.checkInterval) do
 		local newPosition = character.HumanoidRootPart.Position;
-		local distanceMoved = (lastPosition - newPosition).Magnitude;
+		local horizontalDistanceMoved = math.sqrt((lastPosition.X - newPosition.X)^2 + (lastPosition.Z - newPosition.Z)^2);
 
-		if distanceMoved > iHM.ssAC.pD.wS.SETTINGS.toleranceDelta then
+		if horizontalDistanceMoved > iHM.ssAC.pD.wS.SETTINGS.toleranceDelta then
 			iHM.addStrike(player.UserId);
 			if iHM.avCon.DEBUGINFO.dM then
-				print(player.Name .. " is cheating -- Teleport/Speed Bypass/Jumppower Bypass/Flying/Invis");
-				iHM.sendToWebhook(player.Name .. " is cheating -- Teleport/Speed Bypass/Jumppower Bypass/Flying/Invis");
+				print(player.Name .. " is cheating -- Soeed Bypass Detected");
+				iHM.sendToWebhook(player.Name .. " is cheating -- Speed Bypass");
 			end;
 			task.wait(2);
 		end;
 		lastPosition = newPosition;
+	end;
+end;
+
+local function detectJumpHacks(player: Player?, character: Model?)
+	local lastPosition = character and character:FindFirstChild("HumanoidRootPart") and character.HumanoidRootPart.Position;
+	while player.Parent and iHM.ssAC.pD.jP.ENABLED and task.wait(iHM.ssAC.pD.wS.SETTINGS.checkInterval) do
+		local currentPosition = character.HumanoidRootPart.Position;
+		local verticalVelocity = character.HumanoidRootPart.Velocity.Y;
+		if currentPosition.Y - lastPosition.Y > iHM.ssAC.pD.jP.SETTINGS.expectedJumpPower then
+			iHM.addStrike(player.UserId);
+			if iHM.avCon.DEBUGINFO.dM then
+				print(player.Name .. " is cheating -- Jump Power Bypass Detected");
+				iHM.sendToWebhook(player.Name .. " is cheating -- Jump Power Bypass");
+			end;
+			task.wait(2);
+		end;
+		lastPosition = currentPosition;
 	end;
 end;
 
@@ -87,7 +103,7 @@ local function agePrevention(player: Player?)
 	if iHM.ssAC.pD.aA.ENABLED and player.AccountAge < iHM.ssAC.pD.aA.SETTINGS.minimumAge then
 		if iHM.avCon.DEBUGINFO.dM then
 			print(player.Name .. " or " .. player.DisplayName .. " has just been kicked due to account not meeting age");
-			iHM.sendToWebhook(player.Name .. " alt has been detected, account is " .. player.AccountAge .. " days old.")
+			iHM.sendToWebhook(player.Name .. " alt has been detected, account is " .. player.AccountAge .. " days old.");
 		end;
 		player:Kick("Your account is underaged.");
 	end;
@@ -107,6 +123,7 @@ game:GetService("Players").PlayerAdded:Connect(function(player)
 		character:WaitForChild("HumanoidRootPart");
 		character:WaitForChild("Humanoid");
 		coroutine.wrap(detectSpeedHacks)(player, character);
+		coroutine.wrap(detectJumpHacks)(player, character);
 		coroutine.wrap(detectAimBot)(player, character);
 	end);
 	iHM.sendNotification("The game is protected by Jupiter Development!", player.Name);
