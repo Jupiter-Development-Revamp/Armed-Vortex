@@ -5,9 +5,9 @@
     Developers: StyxDeveloper, ExFamous;
     Contributors: nil;
     Description: InfoHandlerModule;
-    Version: v1.0;
-    Update Date: 1/20/2025;
-    	Added Support For The GUI;
+    Version: v1.1.2;
+    Update Date: 4/3/2025;
+    	Fixed jumppower;
 ]]
 
 -- {{ MODULE TABLE }} --
@@ -66,25 +66,31 @@ aVM.avCon = { -- Armed-Vortex Configuration
 };
 
 aVM.ssAC = {
-	pD = { -- Everything the serversided AntiCheat will detect
-		wS = { -- Speed Hacks, And Teleporting, And Jump Hacks, And Fly Hacks, And Invis Hacks
+	pD = { -- Everything the server-sided AntiCheat will detect
+		wS = {
 			ENABLED = true;
 			SETTINGS = { -- Do not modify if you dont know what you're doing
 				checkInterval = 0.6; -- Seconds
 				toleranceDelta = 16 + 1.4; -- 22.4 studs, Roblox's docs state how this works
 			};
 		};
-		aB = {-- AimBots
+		aB = { -- AimBots
 			ENABLED = true;
 			SETTINGS = {
-				aimSnap = 0.8;
-				checkInterval = 0.3;
+				aimSnap = 0.8; -- Threshold for snapping to target (0 to 1 scale)
+				checkInterval = 0.3; -- Interval in seconds between aim check
 			};
 		};
-		aA = {-- Account (NOT PLAYER) age restrictions -- Prevents Accounts under a certain age play your game
+		aA = { -- Account age restrictions to prevent underage players
 			ENABLED = true;
 			SETTINGS = {
-				minimumAge = 10; -- In days
+				minimumAge = 10; -- Minimum account age in days
+			};
+		};
+		jP = {
+			ENABLED = true;
+			SETTINGS = {
+				expectedJumpPower = 9 + 1.4;	
 			};
 		};
 	};
