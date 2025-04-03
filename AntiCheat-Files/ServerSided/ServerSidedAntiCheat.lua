@@ -6,9 +6,9 @@
     Developers: StyxDeveloper;
     Contributors: nil;
     Description: Serversided anticheat;
-    Version: v1.1;
-    Update Date: 3/21/2025;
-	Fixed Jumppower Detection
+    Version: v1.2.1;
+    Update Date: 4/03/2025;
+	Fixed Jump Power once again
 ]]
 
 -- Requiring the module
@@ -50,21 +50,28 @@ local function detectSpeedHacks(player: Player?, character: Model?)
 end;
 
 local function detectJumpHacks(player: Player?, character: Model?)
-	local lastPosition = character and character:FindFirstChild("HumanoidRootPart") and character.HumanoidRootPart.Position;
-	while player.Parent and iHM.ssAC.pD.jP.ENABLED and task.wait(iHM.ssAC.pD.wS.SETTINGS.checkInterval) do
-		local currentPosition = character.HumanoidRootPart.Position;
-		local verticalVelocity = character.HumanoidRootPart.Velocity.Y;
-		if currentPosition.Y - lastPosition.Y > iHM.ssAC.pD.jP.SETTINGS.expectedJumpPower then
-			iHM.addStrike(player.UserId);
+	if not character then return end
+	local humanoid = character:FindFirstChildWhichIsA("Humanoid")
+	local rootPart = character:FindFirstChild("HumanoidRootPart")
+	if not humanoid or not rootPart then return end
+
+	local lastY = rootPart.Position.Y
+	while player.Parent and iHM.ssAC.pD.jP.ENABLED do
+		task.wait(0.5)
+		local heightDiff = rootPart.Position.Y - lastY
+		if heightDiff > iHM.ssAC.pD.jP.SETTINGS.expectedJumpPower then
+			iHM.addStrike(player.UserId)
 			if iHM.avCon.DEBUGINFO.dM then
-				print(player.Name .. " is cheating -- Jump Power Bypass Detected");
-				iHM.sendToWebhook(player.Name .. " is cheating -- Jump Power Bypass");
-			end;
-			task.wait(2);
-		end;
-		lastPosition = currentPosition;
-	end;
-end;
+				print(player.Name .. " is cheating -- Jump Power Bypass Detected (" .. heightDiff .. " studs)")
+				iHM.sendToWebhook(player.Name .. " is cheating -- Jump Power Bypass")
+			end
+			task.wait(2)
+		end
+
+		lastY = rootPart.Position.Y
+	end
+end
+
 
 local function detectAimBot(player: Player?, character: Model?)
 	while player.Parent and iHM.ssAC.pD.aB.ENABLED do
