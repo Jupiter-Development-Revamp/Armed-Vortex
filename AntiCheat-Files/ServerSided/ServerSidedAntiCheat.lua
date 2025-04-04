@@ -6,9 +6,9 @@
     Developers: StyxDeveloper;
     Contributors: nil;
     Description: Serversided anticheat;
-    Version: v1.2.1;
-    Update Date: 4/03/2025;
-	Fixed Jump Power once again
+    Version: v1.1;
+    Update Date: 1/20/2025;
+	Settings moved, added support for GUI, Updated AimBot settings
 ]]
 
 -- Requiring the module
@@ -40,8 +40,8 @@ local function detectSpeedHacks(player: Player?, character: Model?)
 		if horizontalDistanceMoved > iHM.ssAC.pD.wS.SETTINGS.toleranceDelta then
 			iHM.addStrike(player.UserId);
 			if iHM.avCon.DEBUGINFO.dM then
-				print(player.Name .. " is cheating -- Soeed Bypass Detected");
-				iHM.sendToWebhook(player.Name .. " is cheating -- Speed Bypass");
+				print(player.Name .. " is cheating -- Speed Hack Bypass Detected (" .. horizontalDistanceMoved .. " studs)");
+				iHM.sendToWebhook(player.Name .. " is cheating -- Speed Hack Bypass Detected (" .. horizontalDistanceMoved .. " studs)");
 			end;
 			task.wait(2);
 		end;
@@ -50,27 +50,27 @@ local function detectSpeedHacks(player: Player?, character: Model?)
 end;
 
 local function detectJumpHacks(player: Player?, character: Model?)
-	if not character then return end;
-	local humanoid = character:FindFirstChildWhichIsA("Humanoid");
-	local rootPart = character:FindFirstChild("HumanoidRootPart");
-	if not humanoid or not rootPart then return end;
+	if not character then return end
+	local humanoid = character:FindFirstChildWhichIsA("Humanoid")
+	local rootPart = character:FindFirstChild("HumanoidRootPart")
+	if not humanoid or not rootPart then return end
 
-	local lastY = rootPart.Position.Y;
+	local lastY = rootPart.Position.Y
 	while player.Parent and iHM.ssAC.pD.jP.ENABLED do
-		task.wait(0.5);
-		local heightDiff = rootPart.Position.Y - lastY;
+		task.wait(0.5)
+		local heightDiff = rootPart.Position.Y - lastY
 		if heightDiff > iHM.ssAC.pD.jP.SETTINGS.expectedJumpPower then
-			iHM.addStrike(player.UserId);
+			iHM.addStrike(player.UserId)
 			if iHM.avCon.DEBUGINFO.dM then
-				print(player.Name .. " is cheating -- Jump Power Bypass Detected (" .. heightDiff .. " studs)");
-				iHM.sendToWebhook(player.Name .. " is cheating -- Jump Power Bypass");
-			end;
-			task.wait(2);
-		end;
+				print(player.Name .. " is cheating -- Jump Power Bypass Detected (" .. heightDiff .. " studs)")
+				iHM.sendToWebhook(player.Name .. " is cheating -- Jump Power Bypass Detected (" .. heightDiff .. " studs)")
+			end
+			task.wait(2)
+		end
 
-		lastY = rootPart.Position.Y;
-	end;
-end;
+		lastY = rootPart.Position.Y
+	end
+end
 
 
 local function detectAimBot(player: Player?, character: Model?)
