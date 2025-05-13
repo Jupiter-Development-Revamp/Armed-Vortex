@@ -5,9 +5,9 @@
     Developers: StyxDeveloper, ExFamous;
     Contributors: nil;
     Description: InfoHandlerModule;
-    Version: v1.1.2;
-    Update Date: 4/3/2025;
-    	Fixed jumppower;
+    Version: v1.1.3;
+    Update Date: 5/13/2025;
+    	Added support for bad animations;
 ]]
 
 -- {{ MODULE TABLE }} --
@@ -18,7 +18,7 @@ aVM.avCon = { -- Armed-Vortex Configuration
 	-- DONT MESS WITH THIS UNLESS YOU KNOW WHAT YOU ARE DOING!
 	-- THIS IS USED TO FIND BUGS AND FIX THEM!
 	DEBUGINFO = { -- Debugging and Error Pentesting
-		dM = true; -- DEBUG MODE -- CHANGE IF ISSUES PRESENTED IN THIS FILE!
+		dM = false; -- DEBUG MODE -- CHANGE IF ISSUES PRESENTED IN THIS FILE!
 		dOO = false; -- Detection Overwrite -- CHANGE IF ISSUES PRESENTED IN THIS FILE! -- USED TO DISABLE THIS FILE!
 	};
 
@@ -92,6 +92,12 @@ aVM.ssAC = {
 			SETTINGS = {
 				expectedJumpPower = 9 + 1.4;	
 			};
+		};
+		BAD_ANIMATION_IDS = {
+			["rbxassetid://72042024"] = true;
+			["rbxassetid://698251653"] = true;
+			["rbxassetid://148840371"] = true;
+			["rbxassetid://5918726674"] = true;
 		};
 	};
 };
