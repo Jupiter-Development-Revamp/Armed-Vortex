@@ -6,9 +6,9 @@
     Developers: StyxDeveloper;
     Contributors: nil;
     Description: Serversided anticheat;
-    Version: v1.1;
-    Update Date: 1/20/2025;
-	Settings moved, added support for GUI, Updated AimBot settings
+    Version: v1.1.1;
+    Update Date: 5/13/2025;
+	Monitors animations played and checks against a blacklisted one.
 ]]
 
 -- Requiring the module
@@ -50,27 +50,26 @@ local function detectSpeedHacks(player: Player?, character: Model?)
 end;
 
 local function detectJumpHacks(player: Player?, character: Model?)
-	if not character then return end
-	local humanoid = character:FindFirstChildWhichIsA("Humanoid")
-	local rootPart = character:FindFirstChild("HumanoidRootPart")
-	if not humanoid or not rootPart then return end
+	if not character then return; end;
+	local humanoid = character:FindFirstChildWhichIsA("Humanoid");
+	local rootPart = character:FindFirstChild("HumanoidRootPart");
+	if not humanoid or not rootPart then return; end;
 
 	local lastY = rootPart.Position.Y
 	while player.Parent and iHM.ssAC.pD.jP.ENABLED do
-		task.wait(0.5)
-		local heightDiff = rootPart.Position.Y - lastY
+		task.wait(0.5);
+		local heightDiff = rootPart.Position.Y - lastY;
 		if heightDiff > iHM.ssAC.pD.jP.SETTINGS.expectedJumpPower then
-			iHM.addStrike(player.UserId)
+			iHM.addStrike(player.UserId);
 			if iHM.avCon.DEBUGINFO.dM then
-				print(player.Name .. " is cheating -- Jump Power Bypass Detected (" .. heightDiff .. " studs)")
-				iHM.sendToWebhook(player.Name .. " is cheating -- Jump Power Bypass Detected (" .. heightDiff .. " studs)")
-			end
-			task.wait(2)
-		end
-
-		lastY = rootPart.Position.Y
-	end
-end
+				print(player.Name .. " is cheating -- Jump Power Bypass Detected (" .. heightDiff .. " studs)");
+				iHM.sendToWebhook(player.Name .. " is cheating -- Jump Power Bypass Detected (" .. heightDiff .. " studs)");
+			end;
+			task.wait(2);
+		end;
+		lastY = rootPart.Position.Y;
+	end;
+end;
 
 
 local function detectAimBot(player: Player?, character: Model?)
@@ -116,6 +115,26 @@ local function agePrevention(player: Player?)
 	end;
 end;
 
+local function badAnimationDetection(player: Player, character: Model)
+	local humanoid = character:FindFirstChildOfClass("Humanoid");
+	if not humanoid then return; end;
+	local animationConnection
+	animationConnection = humanoid.AnimationPlayed:Connect(function(track)
+		local animId = track.Animation and track.Animation.AnimationId or "unknown";
+		if iHM.ssAC.pD.BAD_ANIMATION_IDS[animId] then
+			warn("[ANIMATION BAN] " .. player.Name .. " attempted to play a banned animation: " .. animId);
+			iHM.sendNotification("Why? Do you think your funny, because you are not!", player.Name);
+			iHM.sendToWebhook(player.Name .. " was kicked for using inappropriate animations!");
+			player:Kick("Inappropriate animation detected.");
+		end;
+	end);
+	character.AncestryChanged:Connect(function(_, parent)
+		if not parent then
+			animationConnection:Disconnect();
+		end;
+	end);
+end;
+
 -- Here is where we will handle our AntiCheat logic
 game:GetService("Players").PlayerAdded:Connect(function(player)
 	local oS, aD = iHM.checkLevel(player);
@@ -132,6 +151,7 @@ game:GetService("Players").PlayerAdded:Connect(function(player)
 		coroutine.wrap(detectSpeedHacks)(player, character);
 		coroutine.wrap(detectJumpHacks)(player, character);
 		coroutine.wrap(detectAimBot)(player, character);
+		coroutine.wrap(badAnimationDetection)(player, character);
 	end);
 	iHM.sendNotification("The game is protected by Jupiter Development!", player.Name);
 end);
